@@ -1,14 +1,17 @@
 package com.example.todo
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todo.databinding.ActivityMainBinding
 import com.example.todo.databinding.FragmentTaskListBinding
+import com.example.todo.form.FormActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
@@ -24,6 +27,14 @@ class TaskListFragment() : Fragment() {
     private var _binding: FragmentTaskListBinding? = null
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
+
+    private val formLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = result.data?.getSerializableExtra("task") as? Task
+        if (task != null) {
+            taskList.add(task)
+            taskListAdapter.submitList(taskList.toList())
+        }
+    }
 
 
     override fun onCreateView(
@@ -42,9 +53,16 @@ class TaskListFragment() : Fragment() {
         taskListAdapter.submitList(taskList.toList())
 
         binding.floatingActionButton.setOnClickListener{
-            taskList.add(Task(id = UUID.randomUUID().toString(), title = "Task ${taskList.size + 1}"))
+            val intent = Intent(activity, FormActivity::class.java)
+            formLauncher.launch(intent)
+
+        }
+
+        taskListAdapter.onClickDelete = { task ->
+            taskList.remove(task)
             taskListAdapter.submitList(taskList.toList())
         }
+
     }
 
 

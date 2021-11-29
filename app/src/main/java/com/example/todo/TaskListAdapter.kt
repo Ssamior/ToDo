@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -23,11 +24,18 @@ object TasksDiffCallback : DiffUtil.ItemCallback<Task>() {
 
 class TaskListAdapter() : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksDiffCallback) {
 
+    var onClickDelete: (Task) -> Unit = {}
+
     inner class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(task: Task) {
             val text: TextView = itemView.findViewById(R.id.task_title)
             val str: String = task.title + "\n" + task.description + "\n"
             text.setText(str)
+
+            val btnDelete: ImageView = itemView.findViewById(R.id.deleteButton)
+            btnDelete.setOnClickListener{
+                onClickDelete(task)
+            }
         }
     }
 
