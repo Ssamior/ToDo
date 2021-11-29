@@ -2,10 +2,8 @@ package com.example.todo.form
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.todo.R
-import com.example.todo.Task
+import com.example.todo.task.Task
 import com.example.todo.databinding.ActivityFormBinding
-import com.example.todo.databinding.ActivityMainBinding
 import java.util.*
 
 private lateinit var binding: ActivityFormBinding
@@ -17,9 +15,14 @@ class FormActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        binding.FABValidateForm.setOnClickListener{
+        val task = intent.getSerializableExtra("task") as? Task
+        if(task != null) {
+            binding.editTitle.setText(task.title)
+            binding.editDescription.setText(task.description)
+        }
 
-            val newTask = Task(id = UUID.randomUUID().toString(), binding.editTitle.toString(), binding.editDescription.toString())
+        binding.FABValidateForm.setOnClickListener{
+            val newTask = Task(id = UUID.randomUUID().toString(), binding.editTitle.text.toString(), binding.editDescription.text.toString())
             intent.putExtra("task", newTask)
             setResult(RESULT_OK, intent)
             finish()

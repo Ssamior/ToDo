@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".task.MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
-        android:name="com.example.todo.TaskListFragment"
+        android:name="com.example.todo.task.TaskListFragment"
         android:id="@+id/fragment_tasklist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

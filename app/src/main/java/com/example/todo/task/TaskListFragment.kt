@@ -1,4 +1,4 @@
-package com.example.todo
+package com.example.todo.task
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,11 +8,8 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.todo.databinding.ActivityMainBinding
 import com.example.todo.databinding.FragmentTaskListBinding
 import com.example.todo.form.FormActivity
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
 private val taskList = mutableListOf(
@@ -55,9 +52,15 @@ class TaskListFragment() : Fragment() {
         binding.floatingActionButton.setOnClickListener{
             val intent = Intent(activity, FormActivity::class.java)
             formLauncher.launch(intent)
-
         }
 
+        taskListAdapter.onClickEdit = { task ->
+            val intent = Intent(activity, FormActivity::class.java)
+            intent.putExtra("task", task)
+            formLauncher.launch(intent)
+            taskList.remove(task)
+            taskListAdapter.submitList(taskList.toList())
+        }
         taskListAdapter.onClickDelete = { task ->
             taskList.remove(task)
             taskListAdapter.submitList(taskList.toList())

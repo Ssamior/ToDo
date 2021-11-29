@@ -1,14 +1,18 @@
-package com.example.todo
+package com.example.todo.task
 
-import android.annotation.SuppressLint
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.todo.R
+import com.example.todo.form.FormActivity
+import java.util.*
 
 object TasksDiffCallback : DiffUtil.ItemCallback<Task>() {
     override fun areItemsTheSame(oldItem: Task, newItem: Task): Boolean {
@@ -25,17 +29,24 @@ object TasksDiffCallback : DiffUtil.ItemCallback<Task>() {
 class TaskListAdapter() : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksDiffCallback) {
 
     var onClickDelete: (Task) -> Unit = {}
+    var onClickEdit: (Task) -> Unit = {}
 
     inner class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(task: Task) {
-            val text: TextView = itemView.findViewById(R.id.task_title)
-            val str: String = task.title + "\n" + task.description + "\n"
-            text.setText(str)
+            private val text: TextView = itemView.findViewById(R.id.task_title)
+            private val btnEdit: ImageView = itemView.findViewById(R.id.editButton)
+            private val btnDelete: ImageView = itemView.findViewById(R.id.deleteButton)
 
-            val btnDelete: ImageView = itemView.findViewById(R.id.deleteButton)
+        fun bind(task: Task) {
+            val str: String = task.title + "\n" + task.description + "\n"
+            text.text = str
+
+            btnEdit.setOnClickListener{
+                onClickEdit(task)
+            }
             btnDelete.setOnClickListener{
                 onClickDelete(task)
             }
+
         }
     }
 
