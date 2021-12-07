@@ -1,5 +1,15 @@
 package com.example.todo.task
 
-import java.io.Serializable
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
-data class Task(val id: String, val title: String, val description: String = "Default") : Serializable
+
+@Serializable
+data class Task(
+    @SerialName("id")
+    val id: String,
+    @SerialName("title")
+    val title: String,
+    @SerialName("description")
+    val description: String = "Default"
+) : java.io.Serializable
