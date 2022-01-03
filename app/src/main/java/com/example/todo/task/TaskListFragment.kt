@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.fragment.app.viewModels
 
 
 class TaskListFragment() : Fragment() {
@@ -25,17 +26,19 @@ class TaskListFragment() : Fragment() {
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
+    private val tasksRepository = TasksRepository()
+    private val taskViewModel: TaskListViewModel by viewModels()
+
+    @SuppressLint("NotifyDataSetChanged")
     private val formLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val task = result.data?.getSerializableExtra("task") as? Task
         if (task != null) {
-            lifecycleScope.launch {
-                tasksRepository.createTask(task)
-                tasksRepository.refresh()
-            }
+            taskViewModel.addOrEdit(task)
         }
+        taskListAdapter.notifyDataSetChanged()
     }
 
-    private val tasksRepository = TasksRepository()
+
 
 
     override fun onCreateView(
@@ -47,6 +50,7 @@ class TaskListFragment() : Fragment() {
         return binding.root
     }
     
+    @SuppressLint("NotifyDataSetChanged")
     @InternalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.recyclerView.layoutManager = LinearLayoutManager(activity)
@@ -61,23 +65,17 @@ class TaskListFragment() : Fragment() {
             val intent = Intent(activity, FormActivity::class.java)
             intent.putExtra("task", task)
             formLauncher.launch(intent)
-            lifecycleScope.launch {
-                tasksRepository.deleteTask(task.id)
-                tasksRepository.refresh()
-            }
         }
         taskListAdapter.onClickDelete = { task ->
-            lifecycleScope.launch {
-                tasksRepository.deleteTask(task.id)
-                tasksRepository.refresh()
-            }
+            taskViewModel.delete(task)
+            taskListAdapter.notifyDataSetChanged();
         }
 
-        lifecycleScope.launch { // on lance une coroutine car `collect` est `suspend`
-            tasksRepository.taskList.collect { list ->
-                taskListAdapter.submitList(list)
+        lifecycleScope.launch {
+            taskViewModel.taskList.collect { newList ->
+                taskListAdapter.submitList(newList);
+                taskListAdapter.notifyDataSetChanged();
             }
-
         }
 
     }
@@ -90,7 +88,7 @@ class TaskListFragment() : Fragment() {
             val userInfo = Api.userWebService.getInfo().body()!!
             binding.textViewUser.text = "User : ${userInfo.firstName} ${userInfo.lastName}"
 
-            tasksRepository.refresh() // on demande de rafraîchir les données sans attendre le retour directement
+            taskViewModel.refresh();
         }
 
     }

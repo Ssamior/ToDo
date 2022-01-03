@@ -16,29 +16,37 @@ class TasksRepository {
     // On pourra seulement l'observer (s'y abonner) depuis d'autres classes
     public val taskList: StateFlow<List<Task>> = _taskList.asStateFlow()
 
-    suspend fun refresh() {
+    suspend fun refresh() : List<Task>? {
         // Call HTTP (opération longue):
         val tasksResponse = tasksWebService.getTasks()
         // À la ligne suivante, on a reçu la réponse de l'API:
         if (tasksResponse.isSuccessful) {
-            val fetchedTasks = tasksResponse.body()
-            // on modifie la valeur encapsulée, ce qui va notifier ses Observers et donc déclencher leur callback
-            if (fetchedTasks != null) _taskList.value = fetchedTasks
+            return tasksResponse.body()
         }
+        return null
     }
 
-    suspend fun updateTask(task: Task) {
-        val updatedTask = tasksWebService.update(task, task.id).body()
-        val oldTask = taskList.value.firstOrNull { it.id == updatedTask?.id }
-        if (oldTask != null && updatedTask != null) _taskList.value = taskList.value - oldTask + updatedTask
-
+    suspend fun updateTask(task: Task): Task? {
+        val response = tasksWebService.update(task, task.id);
+        if(response.isSuccessful) {
+            return response.body();
+        }
+        return null
     }
 
-    suspend fun createTask(task: Task) {
-        tasksWebService.create(task)
+    suspend fun createTask(task: Task): Task? {
+        val response = tasksWebService.create(task)
+        if(response.isSuccessful) {
+            return response.body();
+        }
+        return null;
     }
 
-    suspend fun deleteTask(id: String) {
-        tasksWebService.delete(id)
+    suspend fun deleteTask(id: String): Boolean {
+        val response = tasksWebService.delete(id)
+        if(response.isSuccessful) {
+            return true
+        }
+        return false
     }
 }
