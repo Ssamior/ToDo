@@ -14,14 +14,9 @@ import com.example.todo.databinding.FragmentTaskListBinding
 import com.example.todo.form.FormActivity
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.util.*
-
-private var taskList = mutableListOf(
-    Task(id = "id_1", title = "Task 1", description = "description 1"),
-    Task(id = "id_2", title = "Task 2"),
-    Task(id = "id_3", title = "Task 3")
-)
 
 
 class TaskListFragment() : Fragment() {
@@ -35,7 +30,7 @@ class TaskListFragment() : Fragment() {
         if (task != null) {
             lifecycleScope.launch {
                 tasksRepository.createTask(task)
-                taskListAdapter.submitList(taskList.toList())
+                tasksRepository.refresh()
             }
         }
     }
@@ -56,7 +51,6 @@ class TaskListFragment() : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.recyclerView.layoutManager = LinearLayoutManager(activity)
         binding.recyclerView.adapter = taskListAdapter
-        taskListAdapter.submitList(taskList.toList())
 
         binding.floatingActionButton.setOnClickListener{
             val intent = Intent(activity, FormActivity::class.java)
@@ -70,23 +64,18 @@ class TaskListFragment() : Fragment() {
             lifecycleScope.launch {
                 tasksRepository.deleteTask(task.id)
                 tasksRepository.refresh()
-                taskListAdapter.submitList(taskList.toList())
             }
         }
         taskListAdapter.onClickDelete = { task ->
             lifecycleScope.launch {
                 tasksRepository.deleteTask(task.id)
                 tasksRepository.refresh()
-                taskListAdapter.submitList(taskList.toList())
             }
         }
 
         lifecycleScope.launch { // on lance une coroutine car `collect` est `suspend`
             tasksRepository.taskList.collect { list ->
-                if (taskList != list) {
-                    taskList = list.toMutableList()
-                    taskListAdapter.submitList(taskList.toList())
-                }
+                taskListAdapter.submitList(list)
             }
 
         }
