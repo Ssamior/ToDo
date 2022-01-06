@@ -9,13 +9,6 @@ import retrofit2.http.Path
 class TasksRepository {
     private val tasksWebService = Api.tasksWebService
 
-    // Ces deux variables encapsulent la même donnée:
-    // [_taskList] est modifiable mais privée donc inaccessible à l'extérieur de cette classe
-    private val _taskList = MutableStateFlow<List<Task>>(value = emptyList())
-    // [taskList] est publique mais non-modifiable:
-    // On pourra seulement l'observer (s'y abonner) depuis d'autres classes
-    public val taskList: StateFlow<List<Task>> = _taskList.asStateFlow()
-
     suspend fun refresh() : List<Task>? {
         // Call HTTP (opération longue):
         val tasksResponse = tasksWebService.getTasks()

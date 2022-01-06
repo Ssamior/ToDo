@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +19,12 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.util.*
 import androidx.fragment.app.viewModels
+import coil.load
+import coil.transform.CircleCropTransformation
+import com.example.todo.R
+import com.example.todo.network.UserInfo
+import com.example.todo.user.UserInfoActivity
+import com.example.todo.user.UserInfoViewModel
 
 
 class TaskListFragment() : Fragment() {
@@ -26,8 +33,11 @@ class TaskListFragment() : Fragment() {
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
+    private var avatar: ImageView? = null
+
     private val tasksRepository = TasksRepository()
     private val taskViewModel: TaskListViewModel by viewModels()
+    private val userInfoViewModel: UserInfoViewModel by viewModels()
 
     @SuppressLint("NotifyDataSetChanged")
     private val formLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -50,11 +60,16 @@ class TaskListFragment() : Fragment() {
         return binding.root
     }
     
-    @SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged", "SetTextI18n")
     @InternalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.recyclerView.layoutManager = LinearLayoutManager(activity)
         binding.recyclerView.adapter = taskListAdapter
+
+        avatar = view.findViewById(R.id.avatar)
+        avatar?.setOnClickListener {
+            formLauncher.launch(Intent(activity, UserInfoActivity::class.java))
+        }
 
         binding.floatingActionButton.setOnClickListener{
             val intent = Intent(activity, FormActivity::class.java)
@@ -68,28 +83,32 @@ class TaskListFragment() : Fragment() {
         }
         taskListAdapter.onClickDelete = { task ->
             taskViewModel.delete(task)
-            taskListAdapter.notifyDataSetChanged();
+            taskListAdapter.notifyDataSetChanged()
         }
 
         lifecycleScope.launch {
             taskViewModel.taskList.collect { newList ->
-                taskListAdapter.submitList(newList);
-                taskListAdapter.notifyDataSetChanged();
+                taskListAdapter.submitList(newList)
+                taskListAdapter.notifyDataSetChanged()
             }
         }
 
+        lifecycleScope.launch {
+            userInfoViewModel.userInfo.collect { userInfo ->
+                avatar?.load(userInfo?.avatar ?: "https://goo.gl/gEgYUd") {
+                    error(R.drawable.ic_launcher_background)
+                    transformations(CircleCropTransformation())
+                }
+                binding.textViewUser.text = """${userInfo?.firstName} ${userInfo?.lastName}""".trimMargin()
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launch {
-            // Ici on ne va pas gérer les cas d'erreur donc on force le crash avec "!!"
-            val userInfo = Api.userWebService.getInfo().body()!!
-            binding.textViewUser.text = "User : ${userInfo.firstName} ${userInfo.lastName}"
-
-            taskViewModel.refresh();
-        }
+        taskViewModel.refresh()
+        userInfoViewModel.refresh()
 
     }
 

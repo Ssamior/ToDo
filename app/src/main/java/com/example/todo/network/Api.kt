@@ -3,6 +3,7 @@ import com.example.todo.task.Task
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -11,6 +12,11 @@ import retrofit2.http.*
 interface UserWebService {
     @GET("users/info")
     suspend fun getInfo(): Response<UserInfo>
+    @Multipart
+    @PATCH("users/update_avatar")
+    suspend fun updateAvatar(@Part avatar: MultipartBody.Part): Response<UserInfo>
+    @PATCH("users")
+    suspend fun update(@Body user: UserInfo): Response<UserInfo>
 }
 
 interface TasksWebService {
